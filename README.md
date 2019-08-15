@@ -1,18 +1,24 @@
 Usage: `python onuw.py player1,player2,...,playerN role1,role2,...,roleM [slack]`
-E.g. `python onuw.py Alice,Bob,Charlie robber,apprenticeseer,seer,werewolf,dreamwolf,troublemaker`
 
-Play a game with the indicated players and roles.
+E.g. `python onuw.py alice,bob,charlie robber,apprenticeseer,seer,werewolf,dreamwolf,troublemaker`
+
+
+Starts a game with the indicated players and roles.
+
 
 The players should be listed in either clockwise or counterclockwise order
 (for purpose of village idiot, and passing around computer)
+
 
 If `slack` argument is present, deliver night messages over slack
 for any players whose name is the first name of a user in the slack workspace 
 (you need to follow instructions below to set it up)
 
+
 All night actions are randomized.
 This results in a few material changes to the game.
 (Many decisions were basically random anyway):
+
 
   * Seer looks in middle 50% of the time
   * Witch takes suspicious roles for herself 50% of the time
@@ -29,7 +35,9 @@ This results in a few material changes to the game.
   * Doppelganger robber never robs the robber
   * Doppelganger PI never looks at the PI
 
+
 This app also implements some new roles:
+
 
   * Lucdiwolf: like dreamwolf but sees a center card
   * Medium: like PI but looks in the center
@@ -40,12 +48,14 @@ This app also implements some new roles:
   * Trickster: exchanges a random player's card with a random middle card. Doesn't learn which player or card, only which role.
   * Imposter: is seen as a werewolf.
   * God/enemy of reason: sees everything that happens. Do whatever you want with that.
-  
+
+
 Note that you can have multiple copies of a role, who will act in a random order.
+
 
 Instructions to set up slack:
 
-  Go to `https://<slackdomain>.slack.com/apps/A0F7YS25R-bots`
-  Make a bot by clicking `Add Configuration`, and download the corresponding token
-  Create a new file slack_token.py in this directory, with the single line `slack_token = "..."`
+  * Go to `https://<slackdomain>.slack.com/apps/A0F7YS25R-bots`
+  * Make a bot by clicking `Add Configuration`, and download the corresponding token
+  * Create a new file slack_token.py in this directory, with the single line `slack_token = "..."`
 
