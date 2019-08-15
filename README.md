@@ -1,6 +1,6 @@
 Usage: `python onuw.py player1,player2,...,playerN role1,role2,...,roleM [slack]`
 
-E.g. `python onuw.py Alice,Bob,Charlie robber,apprenticeseer,seer,werewolf,dreamwolf,troublemaker`
+E.g. `python onuw.py alice,bob,charlie robber,apprenticeseer,seer,werewolf,dreamwolf,troublemaker`
 
 
 Starts a game with the indicated players and roles.
