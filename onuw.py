@@ -17,7 +17,8 @@ valid_roles = {"villager", "minion", "werewolf", "doppelganger", "troublemaker",
 
 #groups of roles
 awake_wolves = ("werewolf", "alphawolf", "mysticwolf", "loverwolf")
-all_wolves = awake_wolves + ("lucidwolf", "dreamwolf")
+sleepy_wolves = ("lucidwolf", "dreamwolf")
+all_wolves = awake_wolves + sleepy_wolves
 seen_as_wolves = all_wolves + ("imposter",)
 see_wolves = awake_wolves + ("minion", "merlin")
 evil = all_wolves + ("minion",)
@@ -126,9 +127,9 @@ def game(players, roles, lonewolf=True, use_slack=False):
             except NoTarget:
                 broadcast_and_log(i, "had no one to mark")
         elif role.name == "witch":
-            j = random.randint(1, 3)
-            role = roles[N+j-1]
-            message_and_log(i, f"looked at middle card {j} and saw {role}")
+            j = random_choice(3)
+            role = roles[N+j]
+            message_and_log(i, f"looked at middle card {j+1} and saw {role}")
             if role.name in evil and random.random() < 0.5 and i not in shielded:
                 target = i
             else:
@@ -181,17 +182,17 @@ def game(players, roles, lonewolf=True, use_slack=False):
                     message_and_log(i, "had no one to mark")
             pass
         elif role.name in ("drunk", "fool"):
-            j = random.randint(1, 3)
+            j = random_choice(3)
             if role.name == "fool":
-                for k in [1, 2, 3]:
+                for k in range(3):
                     if k != j:
-                        message_and_log(i, f"looked at middle card {k} and saw {roles[N+k-1]}")
+                        message_and_log(i, f"looked at middle card {k+1} and saw {roles[N+k]}")
             if i in shielded:
                 message_and_log(i, "did nothing, because they were shielded")
             else:
-                rotate(roles, (i, N-1+j))
-                message_and_log(i, f"took middle card {j}",
-                                   f"took middle card {j} which was {roles[i]}")
+                message_and_log(i, f"took middle card {j+1}",
+                                   f"took middle card {j+1} which was {roles[N+j]}")
+                rotate(roles, (i, N+j))
         elif role.name == "mysticwolf":
             targets = try_for_nonwolf(i, doppelganged)
             if not targets:
@@ -242,10 +243,10 @@ def game(players, roles, lonewolf=True, use_slack=False):
                 except NoTarget:
                     looked = False
             if not looked:
-                j = random.randint(1, 3)
-                for k in [1, 2, 3]:
-                    if k != j:
-                        message_and_log(i, f"looked at middle card {k} and saw {roles[N+k-1]}")
+                j = random_choice(3)
+                k = random_choice(3, [j])
+                for m in [j, k]:
+                    message_and_log(i, f"looked at middle card {m+1} and saw {roles[N+m]}")
         elif role.name == "madseer":
             try:
                 j = random_choice(N, [i] + doppelganged + shielded)
@@ -265,11 +266,11 @@ def game(players, roles, lonewolf=True, use_slack=False):
             except NoTarget:
                 message_and_log(i, f"had no one to look at")
         elif role.name == "apprenticeseer":
-            j = random.randint(1, 3)
-            message_and_log(i, f"looked at middle card {j} and saw {roles[N+j-1]}")
+            j = random_choice(3)
+            message_and_log(i, f"looked at middle card {j+1} and saw {roles[N+j]}")
         elif role.name == "lucidwolf":
-            j = random.randint(1, 3)
-            message_and_log(i, f"looked at middle card {j} and saw {roles[N+j-1]}")
+            j = random_choice(3)
+            message_and_log(i, f"looked at middle card {j+1} and saw {roles[N+j]}")
         elif role.name in ("robber", "bandit"):
             if i in shielded:
                 message_and_log(i, f"did nothing, because they were shielded")
@@ -280,10 +281,10 @@ def game(players, roles, lonewolf=True, use_slack=False):
                         rotate(roles, (i, j))
                         message_and_log(i, f"stole {roles[i]} from {players[j]}")
                     elif role.name == "bandit":
-                        k = random.randint(1, 3)
-                        msg = f"stole {roles[j]} from {players[j]} and gave them middle card {k}"
-                        message_and_log(i, msg, f"{msg} which was {roles[N+k-1]}")
-                        rotate(roles, (j, i, N+k-1))
+                        k = random_choice(3)
+                        msg = f"stole {roles[j]} from {players[j]} and gave them middle card {k+1}"
+                        message_and_log(i, msg, f"{msg} which was {roles[N+k]}")
+                        rotate(roles, (j, i, N+k))
                 except NoTarget:
                     message_and_log(i, f"couldn't rob anyone")
         elif role.name == "alphawolf":
@@ -304,9 +305,9 @@ def game(players, roles, lonewolf=True, use_slack=False):
                 else:
                     messages[i].append(f"{players[i]} ended the night as {roles[i]}")
         elif role.name == "mason":
-            messages[i].append(reveal_msg("mason", "masons", [players[i] for i in players_by_role['mason']]))
+            messages[i].append(reveal_msg("mason", "masons", players, players_by_role['mason']))
         elif role.name in ("loverwolf", "lovervillager"):
-            messages[i].append(reveal_msg("lover", "lovers", [players[i] for i in players_in_category(lovers)]))
+            messages[i].append(reveal_msg("lover", "lovers", players, players_in_category(lovers)))
         elif role.name in ("god", "enemyofreason"):
             if doppelganged:
                 wrapup.append((i, role))
@@ -360,15 +361,20 @@ def game(players, roles, lonewolf=True, use_slack=False):
             wake_order.append(role_name)
 
     def do_werewolves():
-        wolves = players_in_category(seen_as_wolves)
-        message = reveal_msg("wolf", "wolves", [players[i] for i in wolves])
-        for player in players_in_category(see_wolves):
-            messages[player].append(message)
-        if len(wolves) == 1 and lonewolf:
-            wolf = wolves[0]
+        seen_wolves = players_in_category(seen_as_wolves)
+        message = reveal_msg("wolf", "wolves", players, seen_wolves)
+        for i in players_in_category(see_wolves):
+            messages[i].append(message)
+        #werewolves separately learn who is sleeping, because they have thumbs out
+        message = reveal_msg("sleeping wolf", "sleeping wolves",
+                             players, players_in_category(sleepy_wolves))
+        for i in players_in_category(awake_wolves):
+            messages[i].append(message)
+        if len(seen_wolves) == 1 and lonewolf:
+            wolf = seen_wolves[0]
             if wolf in players_in_category(awake_wolves):
-                j = random.randint(1, 3)
-                message_and_log(wolf, f"looked at middle card {j} and saw {roles[N-1+j]}")
+                j = random_choice(3)
+                message_and_log(wolf, f"looked at middle card {j+1} and saw {roles[N+j]}")
 
     def display(text):
         print(text)
@@ -496,14 +502,13 @@ def random_choice(N, *excludes):
             return random.choice(exclude)
     raise NoTarget()
 
-def reveal_msg(singular, plural, people):
+def reveal_msg(singular, plural, players, people):
+    people = [players[i] for i in sorted(people)]
     if len(people) == 0:
         return f"there are no {plural}"
     elif len(people) == 1:
         return f"the only {singular} is {people[0]}"
     else:
-        people = list(people)
-        random.shuffle(people)
         return f"the {plural} are {', '.join(people[:-1])} and {people[-1]}"
 
 
