@@ -11,13 +11,15 @@ valid_roles = {"villager", "minion", "werewolf", "doppelganger", "troublemaker",
                "robber", "bandit", "seer", "mason", "hunter", "bodyguard", "tanner",
                "sentinel", "drunk", "fool", "villageidiot", "alphawolf", "mysticwolf", "dreamwolf",
                "apprenticeseer", "insomniac", "revealer", "witch", "PI", "curator",
-               "lucidwolf", "god", "madseer", "loverwolf", "lovervillager", "enemyofreason"}
+               "lucidwolf", "god", "madseer", "loverwolf", "lovervillager", "enemyofreason",
+               "medium", "trickster", "merlin", "imposter"}
 
 
 #groups of roles
-awake_wolves = ("werewolf", "alphawolf", "dreamwolf", "mysticwolf", "loverwolf")
+awake_wolves = ("werewolf", "alphawolf", "mysticwolf", "loverwolf")
 all_wolves = awake_wolves + ("lucidwolf", "dreamwolf")
-see_wolves = awake_wolves + ("minion",)
+seen_as_wolves = all_wolves + ("imposter",)
+see_wolves = awake_wolves + ("minion", "merlin")
 evil = all_wolves + ("minion",)
 suspicious = evil + ("tanner", "lovervillager", "god", "enemyofreason")
 lovers = ("lovervillager", "loverwerewolf")
@@ -31,7 +33,7 @@ All roles are randomized. This has a few material changes:
 
     * Seer looks in middle 50% of the time
     * Witch takes suspicious roles for herself 50% of the time
-    * PI always looks at first role, looks at second role 50% of the time
+    * PI and medium always look at first role, look at second role 50% of the time
     * Village idiot doesn't rotate 20% of the time
     * Troublemaker, robber, and witch always act
     * No one can plan around village idiot affecting nearby locations
@@ -101,7 +103,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
     #gives the list of targets for an action that preferentially targets a non-wolf
     def try_for_nonwolf(i, doppelganged):
         if not doppelganged:
-            return ([j for j in range(N) if j not in players_in_category(all_wolves) and j != i and j not in shielded]
+            return ([j for j in range(N) if j not in players_in_category(seen_as_wolves) and j != i and j not in shielded]
                  or [j for j in range(N) if i != j and j not in shielded]) #if all valid targets are wolves, pick one of them
         else: #doppelganger doesn't yet know who the wolves are, but prefentially avoids whoever they doppelganged
             return ([j for j in range(N) if i != j and j not in shielded+doppelganged]
@@ -112,7 +114,8 @@ def game(players, roles, lonewolf=True, use_slack=False):
         #print(f"shielded = {shielded}")
         #print(f"revealed   = {revealed}")
         #print(f"roles = {roles}")
-        if role.name in ("werewolf", "dreamwolf", "minion", "villager", "hunter", "bodyguard"):
+        if role.name in ("werewolf", "dreamwolf", "minion", "villager", "hunter",
+                         "bodyguard", "merlin", "imposter"):
             pass
         elif role.name == "sentinel":
             try:
@@ -147,6 +150,18 @@ def game(players, roles, lonewolf=True, use_slack=False):
                         break
                 except NoTarget:
                     message_and_log(i, "had no one to look at")
+        elif role.name == "medium":
+            for _ in range(2):
+                exclude = []
+                j = random_choice(3, exclude)
+                exclude.append(j)
+                message_and_log(i, f"looked at center card {j+1} and saw {roles[N+j]}")
+                if roles[N+j].name in suspicious:
+                    message_and_log(i, f"became {roles[N+j]}")
+                    role.copied = roles[N+j]
+                    break
+                if random.random() < 0.5:
+                    break
         elif role.name == "curator":
             if doppelganged:
                 wrapup.append((i, role))
@@ -321,6 +336,15 @@ def game(players, roles, lonewolf=True, use_slack=False):
                 message_and_log(i, f"switched {players[j]} and {players[k]}")
             except NoTarget:
                 message_and_log(i, "couldn't switch anybody")
+        elif role.name == "trickster":
+            try:
+                j = random_choice(N, [i] + shielded)
+                center_index = random_choice(3)
+                message_and_log(i, f"gave the player with role {roles[j]} the new role {roles[N+center_index]}",
+                                   f"gave {players[j]} center card {center_index+1} which was {roles[N+center_index]}")
+                rotate(roles, (j, N+center_index))
+            except NoTarget:
+                message_and_log(i, "couldn't switch anybody")
         else:
             raise ValueError(role.name)
     do_role.current_wolf_card = Role("werewolf")
@@ -336,13 +360,13 @@ def game(players, roles, lonewolf=True, use_slack=False):
             wake_order.append(role_name)
 
     def do_werewolves():
-        wolves = players_in_category(all_wolves)
+        wolves = players_in_category(seen_as_wolves)
         message = reveal_msg("wolf", "wolves", [players[i] for i in wolves])
         for player in players_in_category(see_wolves):
             messages[player].append(message)
         if len(wolves) == 1 and lonewolf:
             wolf = wolves[0]
-            if wolf not in players_by_role['dreamwolf'] + players_by_role['lucidwolf']:
+            if wolf in players_in_category(awake_wolves):
                 j = random.randint(1, 3)
                 message_and_log(wolf, f"looked at middle card {j} and saw {roles[N-1+j]}")
 
@@ -362,10 +386,12 @@ def game(players, roles, lonewolf=True, use_slack=False):
     wake_role("doppelganger")
     do_werewolves()
     wake_role("werewolf")
+    wake_role("imposter")
     wake_role("dreamwolf")
     wake_role("alphawolf")
     wake_role("mysticwolf")
     wake_role("minion")
+    wake_role("merlin")
     wake_role("mason")
     wake_role("loverwolf")
     wake_role("lovervillager")
@@ -374,9 +400,11 @@ def game(players, roles, lonewolf=True, use_slack=False):
     wake_role("apprenticeseer")
     wake_role("lucidwolf")
     wake_role("PI")
+    wake_role("medium")
     wake_role("robber")
-    wake_role("witch")
     wake_role("bandit")
+    wake_role("witch")
+    wake_role("trickster")
     wake_role("troublemaker")
     wake_role("villageidiot")
     wake_role("fool")
