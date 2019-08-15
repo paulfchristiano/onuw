@@ -352,7 +352,9 @@ def game(players, roles, lonewolf=True, use_slack=False):
 
     wake_order = []
     def wake_role(role_name):
-        for i in initial_players_by_role[role_name]:
+        actors = list(initial_players_by_role[role_name])
+        random.shuffle(actors)
+        for i in actors:
             do_role(i, initial_roles[i])
         for i, role in wrapup:
             if role.name == role_name:
