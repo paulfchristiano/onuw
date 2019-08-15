@@ -129,7 +129,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
         elif role.name == "witch":
             j = random_choice(3)
             role = roles[N+j]
-            message_and_log(i, f"looked at middle card {j+1} and saw {role}")
+            message_and_log(i, f"looked at center card {j+1} and saw {role}")
             if role.name in evil and random.random() < 0.5 and i not in shielded:
                 target = i
             else:
@@ -186,12 +186,12 @@ def game(players, roles, lonewolf=True, use_slack=False):
             if role.name == "fool":
                 for k in range(3):
                     if k != j:
-                        message_and_log(i, f"looked at middle card {k+1} and saw {roles[N+k]}")
+                        message_and_log(i, f"looked at center card {k+1} and saw {roles[N+k]}")
             if i in shielded:
                 message_and_log(i, "did nothing, because they were shielded")
             else:
-                message_and_log(i, f"took middle card {j+1}",
-                                   f"took middle card {j+1} which was {roles[N+j]}")
+                message_and_log(i, f"took center card {j+1}",
+                                   f"took center card {j+1} which was {roles[N+j]}")
                 rotate(roles, (i, N+j))
         elif role.name == "mysticwolf":
             targets = try_for_nonwolf(i, doppelganged)
@@ -246,7 +246,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
                 j = random_choice(3)
                 k = random_choice(3, [j])
                 for m in [j, k]:
-                    message_and_log(i, f"looked at middle card {m+1} and saw {roles[N+m]}")
+                    message_and_log(i, f"looked at center card {m+1} and saw {roles[N+m]}")
         elif role.name == "madseer":
             try:
                 j = random_choice(N, [i] + doppelganged + shielded)
@@ -267,10 +267,10 @@ def game(players, roles, lonewolf=True, use_slack=False):
                 message_and_log(i, f"had no one to look at")
         elif role.name == "apprenticeseer":
             j = random_choice(3)
-            message_and_log(i, f"looked at middle card {j+1} and saw {roles[N+j]}")
+            message_and_log(i, f"looked at center card {j+1} and saw {roles[N+j]}")
         elif role.name == "lucidwolf":
             j = random_choice(3)
-            message_and_log(i, f"looked at middle card {j+1} and saw {roles[N+j]}")
+            message_and_log(i, f"looked at center card {j+1} and saw {roles[N+j]}")
         elif role.name in ("robber", "bandit"):
             if i in shielded:
                 message_and_log(i, f"did nothing, because they were shielded")
@@ -282,7 +282,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
                         message_and_log(i, f"stole {roles[i]} from {players[j]}")
                     elif role.name == "bandit":
                         k = random_choice(3)
-                        msg = f"stole {roles[j]} from {players[j]} and gave them middle card {k+1}"
+                        msg = f"stole {roles[j]} from {players[j]} and gave them center card {k+1}"
                         message_and_log(i, msg, f"{msg} which was {roles[N+k]}")
                         rotate(roles, (j, i, N+k))
                 except NoTarget:
@@ -324,7 +324,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
                         rotate(roles, (j, i))
                 for k in range(3):
                     if roles[N+k-1] == role:
-                        message_and_log(i, f"took their original role back from middle card {k}")
+                        message_and_log(i, f"took their original role back from center card {k}")
                         rotate(roles, (N+k-1, i))
                 if do_role.current_wolf_card == role:
                     message_and_log(i, f"took their original role back from the wolf-card")
@@ -376,7 +376,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
             wolf = seen_wolves[0]
             if wolf in players_in_category(awake_wolves):
                 j = random_choice(3)
-                message_and_log(wolf, f"looked at middle card {j+1} and saw {roles[N+j]}")
+                message_and_log(wolf, f"looked at center card {j+1} and saw {roles[N+j]}")
 
     def display(text):
         print(text)
