@@ -389,6 +389,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
     for i in range(N):
         message_and_log(i, f"began the night as {roles[i]}")
 
+    wake_role("tanner")
     wake_role("villager")
     wake_role("sentinel")
     wake_role("doppelganger")
@@ -446,11 +447,11 @@ def game(players, roles, lonewolf=True, use_slack=False):
     print()
     try:
         thinking = 60
-        discussing = 5 * 60
+        discussing = 10 * 60
         warning = 30
         timer(display,
               (0, "One minute to think before starting discussion... (press ctrl-c at any time to see the results)"),
-              (thinking, "Five minutes to discuss until voting..."),
+              (thinking, "Ten minutes to discuss until voting..."),
               (thinking + discussing - warning, "Thirty seconds until voting..."),
               (thinking + discussing, "Time to vote!"))
     except KeyboardInterrupt:
