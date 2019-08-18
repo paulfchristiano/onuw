@@ -27,10 +27,10 @@ This results in a few material changes to the game.
   * Troublemaker, robber, and witch always act
   * No one can make choices based on village idiot affecting nearby locations
   * Village idiot can't choose direction based on shield
-  * Curator marks a revealed player with the same probability rate as other players
-  * Doppelganger troublemaker switches troublemaker at same probability
-  * Doppelganger revealer reveals the revealer at same probability
-  * Doppelganger curator marks the curator at same probability
+  * Curator marks a revealed player with the same probability as other players
+  * Doppelganger troublemaker switches troublemaker with typical probability
+  * Doppelganger revealer reveals the revealer with typical probability
+  * Doppelganger curator marks the curator with typical probability
   * Doppelganger witch never switches the witch
   * Doppelganger robber never robs the robber
   * Doppelganger PI never looks at the PI
