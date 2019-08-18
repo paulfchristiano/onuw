@@ -116,7 +116,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
         #print(f"revealed   = {revealed}")
         #print(f"roles = {roles}")
         if role.name in ("werewolf", "dreamwolf", "minion", "villager", "hunter",
-                         "bodyguard", "merlin", "imposter"):
+                         "bodyguard", "merlin", "imposter", "tanner"):
             pass
         elif role.name == "sentinel":
             try:
@@ -384,7 +384,8 @@ def game(players, roles, lonewolf=True, use_slack=False):
             for player in slack_ids:
                 post_message(slack_ids[player], text)
     
-    display(f"--------------------\nSeating order: {', '.join(players)}")
+    for ms in messages:
+        ms.append(f"--------------------\nSeating order: {', '.join(players)}\n")
 
     for i in range(N):
         message_and_log(i, f"began the night as {roles[i]}")
@@ -427,10 +428,19 @@ def game(players, roles, lonewolf=True, use_slack=False):
         num_roles = len([x for x in roles if x.name == role])
         return role if num_roles == 1 else f"{role} (x{num_roles})"
 
+    indicators = ["1", "2", "3", "4", "5", "pinky", "fist", "thumb", "spidey", "hangloose"]
+
+    wake_order_str = ("\nWake order:\n\n" +
+            "\n".join([f"({i}) {make_wake_order_str(x)}"
+                       for i, x in zip(indicators, wake_order)]))
+    for ms in messages:
+        ms.append(wake_order_str)
+
     for i, player in enumerate(players):
         if player in slack_ids:
             post_message([slack_ids[player]], '\n'.join(messages[i]))
 
+    mostly_slack = (len(players) <= len([p for p in players if p in slack_ids]) + 1)
     for i, player in enumerate(players):
         if player not in slack_ids:
             clear()
@@ -439,20 +449,21 @@ def game(players, roles, lonewolf=True, use_slack=False):
             clear()
             for message in messages[i]:
                 print(message)
-            wait()
+            if not mostly_slack:
+                wait()
 
-    clear()
-    display("Wake order:\n\n" +
-            "\n".join([f"{i+1}. {make_wake_order_str(x)}" for i, x in enumerate(wake_order)]))
-    print()
+    if not mostly_slack:
+        clear()
+        print(wake_order_str)
     try:
+        print()
         thinking = 60
         discussing = 10 * 60
-        warning = 30
         timer(display,
               (0, "One minute to think before starting discussion... (press ctrl-c at any time to see the results)"),
               (thinking, "Ten minutes to discuss until voting..."),
-              (thinking + discussing - warning, "Thirty seconds until voting..."),
+              (thinking + discussing - 120, "Two minutes until voting..."),
+              (thinking + discussing - 30, "Thirty seconds until voting..."),
               (thinking + discussing, "Time to vote!"))
     except KeyboardInterrupt:
         pass
