@@ -323,9 +323,9 @@ def game(players, roles, lonewolf=True, use_slack=False):
                         message_and_log(i, f"took their original role back from {players[j]}")
                         rotate(roles, (j, i))
                 for k in range(3):
-                    if roles[N+k-1] == role:
-                        message_and_log(i, f"took their original role back from center card {k}")
-                        rotate(roles, (N+k-1, i))
+                    if roles[N+k] == role:
+                        message_and_log(i, f"took their original role back from center card {k+1}")
+                        rotate(roles, (N+k, i))
                 if do_role.current_wolf_card == role:
                     message_and_log(i, f"took their original role back from the wolf-card")
                     roles[i], do_role.current_wolf_card = do_role.current_wolf_card, roles[i]
