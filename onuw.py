@@ -422,6 +422,7 @@ def game(players, roles, lonewolf=True, use_slack=False):
     wake_role("insomniac")
     wake_role("revealer")
     wake_role("curator")
+    wake_role("enemyofreason")
     wake_role("god")
 
     def make_wake_order_str(role):
